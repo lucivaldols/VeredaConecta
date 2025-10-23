@@ -56,15 +56,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       if (data.sucesso) {
         console.log('✅ Login bem-sucedido:', data.usuario);
         
-        // Chamar onLogin com os dados corretos
-        const success = onLogin({ email: loginEmail, password: loginPassword });
-        
-        if (!success) {
-          // Se onLogin retornar false, mostrar erro
-          setError('Erro ao processar login. Tente novamente.');
-        }
-        // Se success === true, o onLogin redireciona automaticamente
-      } else {
+        // ✅ Passar dados completos da API incluindo role
+      const userData = {
+        email: data.usuario.email,
+        password: loginPassword,
+        role: data.usuario.role || 'member',  // ⭐ Buscar role da API
+        name: data.usuario.nome,
+        id: data.usuario.id
+      };
+      
+      onLogin(userData);else {
         setError(data.mensagem || 'Email ou senha inválidos');
       }
     } catch (erro) {
