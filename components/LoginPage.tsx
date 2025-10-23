@@ -12,139 +12,319 @@ interface LoginPageProps {
   headerTitle: string;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, registrationSuccess, logoUrl, headerTitle }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ 
+  onLogin, 
+  onRegister, 
+  registrationSuccess, 
+  logoUrl, 
+  headerTitle 
+}) => {
   const [view, setView] = useState<'login' | 'register'>('login');
   const [error, setError] = useState('');
 
-  // Form states
+  // LOGIN states
   const [loginEmail, setLoginEmail] = useState('admin@community.com');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginPassword, setLoginPassword] = useState('senha123');
   
-  const initialRegisterState = {
-      name: '',
-      cpf: '',
-      address: '',
-      phone: '',
-      email: '',
-      password: ''
-  };
-  const [registerData, setRegisterData] = useState<RegisterData>(initialRegisterState);
+  // REGISTER states
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    cpf: '',
+    address: '',
+    phone: '',
+    email: '',
+    password: ''
+  });
 
-  const handleLoginSubmit = (e: FormEvent) => {
+  // ========== FUNÇÃO DE LOGIN ATUALIZADA ==========
+  const handleLoginSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const success = onLogin({ email: loginEmail, password: loginPassword });
-    if (!success) {
-      setError('Email ou senha inválidos. Tente novamente.');
-    } else {
-      setError('');
+    setError('');
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: loginEmail, 
+          senha: loginPassword // A API usa "senha", não "password"
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.sucesso) {
+        console.log('✅ Login bem-sucedido:', data.usuario);
+        // Chamar onLogin com os dados corretos
+        onLogin({ email: loginEmail, password: loginPassword });
+      } else {
+        setError(data.mensagem || 'Email ou senha inválidos');
+      }
+    } catch (erro) {
+      console.error('Erro ao fazer login:', erro);
+      setError('Erro ao conectar com servidor');
     }
   };
   
-  const handleRegisterSubmit = (e: FormEvent) => {
+  // ========== FUNÇÃO DE CADASTRO ATUALIZADA ==========
+  const handleRegisterSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if(registerData.password && registerData.password.length < 6) {
-        setError('A senha deve ter pelo menos 6 caracteres.');
-        return;
-    }
-    onRegister(registerData);
-    setRegisterData(initialRegisterState);
-    setView('login');
     setError('');
+
+    // Validações
+    if (!registerData.name || !registerData.email || !registerData.password) {
+      setError('Por favor, preencha nome, email e senha');
+      return;
+    }
+
+    if (registerData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: registerData.name,      // Mapear name → nome
+          email: registerData.email,
+          senha: registerData.password,  // Mapear password → senha
+          cpf: registerData.cpf,
+          endereco: registerData.address, // Mapear address → endereco
+          telefone: registerData.phone    // Mapear phone → telefone
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.sucesso) {
+        alert('✅ ' + data.mensagem);
+        console.log('Usuário criado:', data.usuario);
+        
+        // Resetar form e voltar para login
+        setRegisterData({
+          name: '',
+          cpf: '',
+          address: '',
+          phone: '',
+          email: '',
+          password: ''
+        });
+        setView('login');
+        setError('');
+      } else {
+        setError(data.mensagem || 'Erro ao criar conta');
+      }
+    } catch (erro) {
+      console.error('Erro ao cadastrar:', erro);
+      setError('Erro ao conectar com servidor');
+    }
   };
 
   const handleRegisterInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setRegisterData(prev => ({ ...prev, [name]: value }));
-  }
+    const { name, value } = e.target;
+    setRegisterData(prev => ({ ...prev, [name]: value }));
+  };
 
+  // ========== RENDERIZAR LOGIN ==========
   const renderLogin = () => (
     <form onSubmit={handleLoginSubmit} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+      
       <div>
-        <label htmlFor="email-login" className="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="email-login" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
+        <label htmlFor="email-login" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
+        <input 
+          type="email" 
+          id="email-login" 
+          value={loginEmail} 
+          onChange={e => setLoginEmail(e.target.value)} 
+          required 
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
       </div>
+      
       <div>
-        <label htmlFor="password-login" className="block text-sm font-medium text-gray-700">Senha</label>
-        <input type="password" id="password-login" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
+        <label htmlFor="password-login" className="block text-sm font-medium text-gray-700">
+          Senha
+        </label>
+        <input 
+          type="password" 
+          id="password-login" 
+          value={loginPassword} 
+          onChange={e => setLoginPassword(e.target.value)} 
+          required 
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
       </div>
-      <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light">
+      
+      <button 
+        type="submit" 
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light"
+      >
         Entrar
       </button>
+      
       <p className="text-center text-sm">
         Não tem uma conta?{' '}
-        <button type="button" onClick={() => { setView('register'); setError(''); }} className="font-medium text-primary hover:text-primary-light">
+        <button 
+          type="button" 
+          onClick={() => { setView('register'); setError(''); }} 
+          className="font-medium text-primary hover:text-primary-light"
+        >
           Cadastre-se
         </button>
       </p>
     </form>
   );
 
+  // ========== RENDERIZAR CADASTRO ==========
   const renderRegister = () => (
-    <form onSubmit={handleRegisterSubmit} className="space-y-3">
-        <input type="text" name="name" placeholder="Nome Completo" value={registerData.name} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        <input type="email" name="email" placeholder="Email" value={registerData.email} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        <input type="password" name="password" placeholder="Senha (mín. 6 caracteres)" value={registerData.password} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        <input type="text" name="cpf" placeholder="CPF" value={registerData.cpf} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        <input type="text" name="address" placeholder="Endereço" value={registerData.address} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        <input type="tel" name="phone" placeholder="Telefone" value={registerData.phone} onChange={handleRegisterInputChange} required className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" />
-        
-        <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
-            Criar Conta
+    <form onSubmit={handleRegisterSubmit} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {registrationSuccess && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          Cadastro realizado com sucesso! Faça login para continuar.
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          Nome Completo *
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name"
+          value={registerData.name} 
+          onChange={handleRegisterInputChange}
+          required 
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <div>
+        <label htmlFor="email-register" className="block text-sm font-medium text-gray-700">
+          Email *
+        </label>
+        <input 
+          type="email" 
+          id="email-register" 
+          name="email"
+          value={registerData.email} 
+          onChange={handleRegisterInputChange}
+          required 
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password-register" className="block text-sm font-medium text-gray-700">
+          Senha * (mín. 6 caracteres)
+        </label>
+        <input 
+          type="password" 
+          id="password-register" 
+          name="password"
+          value={registerData.password} 
+          onChange={handleRegisterInputChange}
+          required
+          minLength={6}
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <div>
+        <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
+          CPF
+        </label>
+        <input 
+          type="text" 
+          id="cpf" 
+          name="cpf"
+          value={registerData.cpf} 
+          onChange={handleRegisterInputChange}
+          maxLength={14}
+          placeholder="000.000.000-00"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          Endereço
+        </label>
+        <input 
+          type="text" 
+          id="address" 
+          name="address"
+          value={registerData.address} 
+          onChange={handleRegisterInputChange}
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+          Telefone
+        </label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone"
+          value={registerData.phone} 
+          onChange={handleRegisterInputChange}
+          maxLength={20}
+          placeholder="(00) 00000-0000"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light" 
+        />
+      </div>
+
+      <button 
+        type="submit" 
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light"
+      >
+        Criar Conta
+      </button>
+
+      <p className="text-center text-sm">
+        Já tem uma conta?{' '}
+        <button 
+          type="button" 
+          onClick={() => { setView('login'); setError(''); }} 
+          className="font-medium text-primary hover:text-primary-light"
+        >
+          Fazer login
         </button>
-        <p className="text-center text-sm">
-            Já tem uma conta?{' '}
-            <button type="button" onClick={() => { setView('login'); setError(''); }} className="font-medium text-primary hover:text-primary-light">
-            Faça login
-            </button>
-        </p>
+      </p>
     </form>
   );
 
+  // ========== RENDER PRINCIPAL ==========
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8 space-y-6">
-        <div className="text-center">
-            <div className="flex flex-col justify-center items-center gap-2 mb-4">
-                {logoUrl && (
-                    <img src={logoUrl} alt="Logo da Associação" className="h-12 object-contain"/>
-                )}
-                <h1 className="text-3xl font-bold text-primary-dark">{headerTitle}</h1>
-            </div>
-            <p className="text-gray-500 mt-2">
-                {view === 'login' ? 'Bem-vindo(a) de volta!' : 'Crie sua conta de associado'}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-primary-light to-primary flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+        <div className="text-center mb-8">
+          {logoUrl && <img src={logoUrl} alt="Logo" className="mx-auto h-16 mb-4" />}
+          <h1 className="text-3xl font-bold text-gray-900">{headerTitle}</h1>
+          <p className="text-gray-600 mt-2">
+            {view === 'login' ? 'Bem-vindo(a) de volta!' : 'Crie sua conta de associado'}
+          </p>
         </div>
-        
-        {error && <p className="text-center text-sm text-danger bg-danger/10 p-2 rounded-md">{error}</p>}
-        {registrationSuccess && view === 'login' && <p className="text-center text-sm text-success bg-success/10 p-2 rounded-md">Cadastro realizado com sucesso! Faça login para continuar.</p>}
 
         {view === 'login' ? renderLogin() : renderRegister()}
       </div>
     </div>
   );
-  // src/components/Login.jsx (exemplo React)
-async function handleLogin(e) {
-  e.preventDefault();
-  
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      email: loginEmail, 
-      senha: loginPassword 
-    })
-  });
-
-  const data = await response.json();
-  
-  if (data.sucesso) {
-    console.log('Login bem-sucedido:', data.usuario);
-    // Redirecionar ou salvar sessão
-    localStorage.setItem('usuario', JSON.stringify(data.usuario));
-    window.location.href = '/dashboard';
-  } else {
-    alert(data.mensagem);
-  }
-}
-
 };
