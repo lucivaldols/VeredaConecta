@@ -65,7 +65,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         id: data.usuario.id
       };
       
-      onLogin(userData);else {
+      onLogin(userData)} else {
         setError(data.mensagem || 'Email ou senha inválidos');
       }
     } catch (erro) {
@@ -336,3 +336,4 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     </div>
   );
 };
+        
