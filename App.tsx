@@ -23,8 +23,7 @@ import { getTranslator } from './lib/i18n';
 
 type Page = 'dashboard' | 'profile' | 'projects' | 'financials' | 'members' | 'chat' | 'creative' | 'settings';
 
-type LoginData = { email: string; password?: string };
-type RegisterData = Omit<MemberProfileType, 'id' | 'avatarUrl' | 'fees' | 'role' | 'joinDate'>;
+type LoginData = { email: string; password?: string; role?: Role; name?: string; id?: number };type RegisterData = Omit<MemberProfileType, 'id' | 'avatarUrl' | 'fees' | 'role' | 'joinDate'>;
 
 export interface AppContextType {
   currentUser: MemberProfileType | null;
