@@ -37,41 +37,43 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   });
 
   // ========== FUNÇÃO DE LOGIN ATUALIZADA ==========
-  const handleLoginSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: loginEmail, 
-          senha: loginPassword // A API usa "senha", não "password"
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.sucesso) {
-        console.log('✅ Login bem-sucedido:', data.usuario);
-        
-        // Chamar onLogin com os dados corretos
-        const success = onLogin({ email: loginEmail, password: loginPassword });
-        
-        if (!success) {
-          // Se onLogin retornar false, mostrar erro
-          setError('Erro ao processar login. Tente novamente.');
-        }
-        // Se success === true, o onLogin deve redirecionar automaticamente
-      } else {
-        setError(data.mensagem || 'Email ou senha inválidos');
+ // ========== FUNÇÃO DE LOGIN CORRIGIDA ==========
+const handleLoginSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  setError('');
+  
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email: loginEmail, 
+        senha: loginPassword // A API usa "senha", não "password"
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.sucesso) {
+      console.log('✅ Login bem-sucedido:', data.usuario);
+      
+      // Chamar onLogin com os dados corretos
+      const success = onLogin({ email: loginEmail, password: loginPassword });
+      
+      if (!success) {
+        // Se onLogin retornar false, mostrar erro
+        setError('Erro ao processar login. Tente novamente.');
       }
-    } catch (erro) {
-      console.error('Erro ao fazer login:', erro);
-      setError('Erro ao conectar com servidor');
+      // Se success === true, o onLogin deve redirecionar automaticamente
+    } else {
+      setError(data.mensagem || 'Email ou senha inválidos');
     }
-  };
+  } catch (erro) {
+    console.error('Erro ao fazer login:', erro);
+    setError('Erro ao conectar com servidor');
+  }
+};
+
   
   // ========== FUNÇÃO DE CADASTRO ATUALIZADA ==========
   const handleRegisterSubmit = async (e: FormEvent) => {
