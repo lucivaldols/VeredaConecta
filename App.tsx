@@ -20,6 +20,7 @@ import { INITIAL_USERS, INITIAL_PROJECTS, INITIAL_BANK_ACCOUNTS, INITIAL_TRANSAC
 import { LoginPage } from './components/LoginPage';
 import { getTranslator } from './lib/i18n';
 
+
 type Page = 'dashboard' | 'profile' | 'projects' | 'financials' | 'members' | 'chat' | 'creative' | 'settings';
 
 type LoginData = { email: string; password?: string };

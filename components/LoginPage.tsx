@@ -122,4 +122,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onRegister, regis
       </div>
     </div>
   );
+  // src/components/Login.jsx (exemplo React)
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  const response = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      email: loginEmail, 
+      senha: loginPassword 
+    })
+  });
+
+  const data = await response.json();
+  
+  if (data.sucesso) {
+    console.log('Login bem-sucedido:', data.usuario);
+    // Redirecionar ou salvar sessão
+    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    window.location.href = '/dashboard';
+  } else {
+    alert(data.mensagem);
+  }
+}
+
 };
