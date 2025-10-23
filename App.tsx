@@ -130,8 +130,7 @@ const App: React.FC = () => {
             cpf: '',
             address: '',
             phone: '',
-            role: Role.Member,
-            joinDate: new Date().toISOString().split('T')[0],
+role: data.role || Role.Member,  // ⭐ USAR role da API            joinDate: new Date().toISOString().split('T')[0],
             avatarUrl: `https://ui-avatars.com/api/?name=${data.email}&background=0a9396&color=fff`,
             bannerUrl: 'https://picsum.photos/1000/300',
             fees: []
@@ -141,8 +140,7 @@ const App: React.FC = () => {
         setIsAuthenticated(true);
         setActivePage('dashboard');
         setRegistrationSuccess(false);
-        console.log('✅ Usuário autenticado:', tempUser);
-        return true;
+console.log('✅ Usuário autenticado com role:', tempUser.role);        return true;
     };
 
     const handleLogout = () => {
