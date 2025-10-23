@@ -55,8 +55,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       if (data.sucesso) {
         console.log('✅ Login bem-sucedido:', data.usuario);
+        
         // Chamar onLogin com os dados corretos
-        onLogin({ email: loginEmail, password: loginPassword });
+        const success = onLogin({ email: loginEmail, password: loginPassword });
+        
+        if (!success) {
+          // Se onLogin retornar false, mostrar erro
+          setError('Erro ao processar login. Tente novamente.');
+        }
+        // Se success === true, o onLogin deve redirecionar automaticamente
       } else {
         setError(data.mensagem || 'Email ou senha inválidos');
       }
