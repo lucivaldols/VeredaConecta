@@ -121,15 +121,28 @@ const App: React.FC = () => {
     };
 
     const handleLogin = (data: LoginData): boolean => {
-        const user = users.find(u => u.email === data.email && u.password === data.password);
-        if (user) {
-            setCurrentUser(user);
-            setIsAuthenticated(true);
-            setActivePage('dashboard');
-            setRegistrationSuccess(false);
-            return true;
-        }
-        return false;
+        // ✅ CORREÇÃO: Não validar novamente - a API já validou
+        const tempUser: MemberProfileType = {
+            id: Date.now(),
+            name: data.email.split('@')[0],
+            email: data.email,
+            password: data.password || '',
+            cpf: '',
+            address: '',
+            phone: '',
+            role: Role.Member,
+            joinDate: new Date().toISOString().split('T')[0],
+            avatarUrl: `https://ui-avatars.com/api/?name=${data.email}&background=0a9396&color=fff`,
+            bannerUrl: 'https://picsum.photos/1000/300',
+            fees: []
+        };
+        
+        setCurrentUser(tempUser);
+        setIsAuthenticated(true);
+        setActivePage('dashboard');
+        setRegistrationSuccess(false);
+        console.log('✅ Usuário autenticado:', tempUser);
+        return true;
     };
 
     const handleLogout = () => {
